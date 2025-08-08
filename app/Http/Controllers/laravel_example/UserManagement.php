@@ -197,4 +197,39 @@ class UserManagement extends Controller
   {
     $users = User::where('id', $id)->delete();
   }
+
+  /**
+   * Return distinct countries that have at least one user. Supports search via ?q=.
+   */
+  public function countries(Request $request): JsonResponse
+  {
+    $q = trim((string) $request->input('q', ''));
+
+    $countryCodes = User::query()
+      ->whereNotNull('country_code')
+      ->distinct()
+      ->pluck('country_code');
+
+    $countries = Country::query()
+      ->whereIn('iso2', $countryCodes)
+      ->when($q !== '', function ($query) use ($q) {
+        $query->where(function ($sub) use ($q) {
+          $sub->where('name', 'like', "%{$q}%")
+              ->orWhere('iso2', 'like', "%{$q}%")
+              ->orWhere('iso3', 'like', "%{$q}%");
+        });
+      })
+      ->orderBy('name')
+      ->get();
+
+    $results = $countries->map(function ($c) {
+      return [
+        'id' => $c->iso2,
+        'text' => $c->name,
+        'flag_class' => $c->flag_icon_class,
+      ];
+    });
+
+    return response()->json($results->values());
+  }
 }

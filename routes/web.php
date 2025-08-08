@@ -371,4 +371,5 @@ Route::get('/charts/chartjs', [ChartJs::class, 'index'])->name('charts-chartjs')
 Route::get('/maps/leaflet', [Leaflet::class, 'index'])->name('maps-leaflet');
 
 // laravel example
+Route::get('/user-list/countries', [UserManagement::class, 'countries'])->name('user-list.countries');
 Route::resource('/user-list', UserManagement::class);

@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
     userView = baseUrl + 'app/user/view/account',
     offCanvasForm = document.getElementById('offcanvasAddUser');
 
-  // Select2 initialization
+  // Select2 initialization for offcanvas form country
   var select2 = $('.select2');
   if (select2.length) {
     var $this = select2;
@@ -25,6 +25,41 @@ document.addEventListener('DOMContentLoaded', function (e) {
     $this.wrap('<div class="position-relative"></div>').select2({
       placeholder: 'Select Country',
       dropdownParent: $this.parent()
+    });
+  }
+
+  // Country filter (Select2 with AJAX) - only countries used by users
+  const $countryFilter = $('#user-country-filter');
+  if ($countryFilter.length) {
+    $countryFilter.wrap('<div class="position-relative"></div>').select2({
+      placeholder: 'Filter by country',
+      allowClear: true,
+      ajax: {
+        url: baseUrl + 'user-list/countries',
+        dataType: 'json',
+        delay: 250,
+        data: function (params) {
+          return { q: params.term || '' };
+        },
+        processResults: function (data) {
+          return {
+            results: data.map(function (item) {
+              return { id: item.id, text: item.text, flag_class: item.flag_class };
+            })
+          };
+        },
+        cache: true
+      },
+      dropdownParent: $countryFilter.parent(),
+      templateResult: function (item) {
+        if (!item.id) return item.text;
+        var iconHtml = item.flag_class ? '<i class="fi ' + item.flag_class + ' fis rounded-circle me-2"></i>' : '';
+        var $tpl = $('<span>' + iconHtml + item.text + '</span>');
+        return $tpl;
+      },
+      templateSelection: function (item) {
+        return item.text || item.id || '';
+      }
     });
   }
 
@@ -42,6 +77,10 @@ document.addEventListener('DOMContentLoaded', function (e) {
       serverSide: true,
       ajax: {
         url: baseUrl + 'user-list',
+        data: function (d) {
+          const country = $('#user-country-filter').val();
+          if (country) d.country_code = country;
+        },
         dataSrc: function (json) {
           // Ensure recordsTotal and recordsFiltered are numeric and not undefined/null
           if (typeof json.recordsTotal !== 'number') {
@@ -63,6 +102,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
         { data: 'id' },
         { data: 'name' },
         { data: 'email' },
+        { data: 'country_name' },
         { data: 'email_verified_at' },
         { data: 'action' }
       ],
@@ -92,8 +132,6 @@ document.addEventListener('DOMContentLoaded', function (e) {
           responsivePriority: 4,
           render: function (data, type, full, meta) {
             const { name } = full; // Destructuring to get 'name' from the 'full' object
-            const flagClass = full['country_flag_class'];
-            const countryName = full['country_name'];
 
             // For Avatar badge
             const stateNum = Math.floor(Math.random() * 6);
@@ -116,10 +154,8 @@ document.addEventListener('DOMContentLoaded', function (e) {
                   </div>
                 </div>
                 <div class="d-flex flex-column">
-                  <a href="${userView}" class="text-truncate text-heading d-flex align-items-center gap-2">
-                    ${flagClass ? `<span class="fi ${flagClass} me-1" ${countryName ? `title="${countryName}"` : ''}></span>` : ''}
+                  <a href="${userView}" class="text-truncate text-heading">
                     <span class="fw-medium">${name}</span>
-                  </a>
                 </div>
               </div>
             `;
@@ -133,13 +169,24 @@ document.addEventListener('DOMContentLoaded', function (e) {
           targets: 3,
           render: function (data, type, full, meta) {
             const email = full['email'];
-
             return '<span class="user-email">' + email + '</span>';
           }
         },
         {
-          // email verify
+          // Country column
           targets: 4,
+          orderable: false,
+          searchable: false,
+          render: function (data, type, full, meta) {
+            const flagClass = full['country_flag_class'];
+            const countryName = full['country_name'] || '';
+            const iconHtml = flagClass ? `<i class="fi ${flagClass} fis rounded-circle me-2"></i>` : '';
+            return `<div class="d-flex align-items-center">${iconHtml}<span>${countryName}</span></div>`;
+          }
+        },
+        {
+          // email verify
+          targets: 5,
           className: 'text-center',
           render: function (data, type, full, meta) {
             const verified = full['email_verified_at'];
@@ -152,7 +199,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
         },
         {
           // Actions
-          targets: -1,
+          targets: 6,
           title: 'Actions',
           searchable: false,
           orderable: false,
@@ -190,7 +237,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
           features: [
             {
               search: {
-                placeholder: 'Search User',
+                placeholder: 'Search by name or email',
                 text: '_INPUT_'
               }
             },
@@ -203,7 +250,13 @@ document.addEventListener('DOMContentLoaded', function (e) {
                   buttons: [
                     {
                       extend: 'print',
-                      title: 'Users',
+                      title: 'Users - Scoreful',
+                      filename: function () {
+                        const pad = n => String(n).padStart(2, '0');
+                        const now = new Date();
+                        const dateStr = `${pad(now.getDate())}-${pad(now.getMonth() + 1)}-${now.getFullYear()}_${pad(now.getHours())}_${pad(now.getMinutes())}`;
+                        return `Users_${dateStr}`;
+                      },
                       text: '<i class="icon-base ri ri-printer-line me-2" ></i>Print',
                       className: 'dropdown-item',
                       exportOptions: {
@@ -257,7 +310,13 @@ document.addEventListener('DOMContentLoaded', function (e) {
                     },
                     {
                       extend: 'csv',
-                      title: 'Users',
+                      title: 'Users - Scoreful',
+                      filename: function () {
+                        const pad = n => String(n).padStart(2, '0');
+                        const now = new Date();
+                        const dateStr = `${pad(now.getDate())}-${pad(now.getMonth() + 1)}-${now.getFullYear()}_${pad(now.getHours())}_${pad(now.getMinutes())}`;
+                        return `Users_${dateStr}`;
+                      },
                       text: '<i class="icon-base ri ri-file-text-line me-2" ></i>Csv',
                       className: 'dropdown-item',
                       exportOptions: {
@@ -295,6 +354,13 @@ document.addEventListener('DOMContentLoaded', function (e) {
                     },
                     {
                       extend: 'excel',
+                      title: 'Users - Scoreful',
+                      filename: function () {
+                        const pad = n => String(n).padStart(2, '0');
+                        const now = new Date();
+                        const dateStr = `${pad(now.getDate())}-${pad(now.getMonth() + 1)}-${now.getFullYear()}_${pad(now.getHours())}_${pad(now.getMinutes())}`;
+                        return `Users_${dateStr}`;
+                      },
                       text: '<i class="icon-base ri ri-file-excel-line me-2"></i>Excel',
                       className: 'dropdown-item',
                       exportOptions: {
@@ -332,7 +398,13 @@ document.addEventListener('DOMContentLoaded', function (e) {
                     },
                     {
                       extend: 'pdf',
-                      title: 'Users',
+                      title: 'Users - Scoreful',
+                      filename: function () {
+                        const pad = n => String(n).padStart(2, '0');
+                        const now = new Date();
+                        const dateStr = `${pad(now.getDate())}-${pad(now.getMonth() + 1)}-${now.getFullYear()}_${pad(now.getHours())}_${pad(now.getMinutes())}`;
+                        return `Users_${dateStr}`;
+                      },
                       text: '<i class="icon-base ri ri-file-pdf-line me-2"></i>Pdf',
                       className: 'dropdown-item',
                       exportOptions: {
@@ -370,7 +442,13 @@ document.addEventListener('DOMContentLoaded', function (e) {
                     },
                     {
                       extend: 'copy',
-                      title: 'Users',
+                      title: 'Users - Scoreful',
+                      filename: function () {
+                        const pad = n => String(n).padStart(2, '0');
+                        const now = new Date();
+                        const dateStr = `${pad(now.getDate())}-${pad(now.getMonth() + 1)}-${now.getFullYear()}_${pad(now.getHours())}_${pad(now.getMinutes())}`;
+                        return `Users_${dateStr}`;
+                      },
                       text: '<i class="icon-base ri ri-file-copy-line me-2" ></i>Copy',
                       className: 'dropdown-item',
                       exportOptions: {
@@ -483,8 +561,16 @@ document.addEventListener('DOMContentLoaded', function (e) {
         document.querySelectorAll('.dt-buttons .btn').forEach(btn => {
           btn.classList.remove('btn-secondary');
         });
+
       }
     });
+
+    // Reload table when country filter changes
+    if ($countryFilter.length) {
+      $countryFilter.on('change', function () {
+        dt_user.ajax.reload();
+      });
+    }
 
     // Delete Record
     document.addEventListener('click', function (e) {

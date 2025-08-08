@@ -119,6 +119,15 @@
   <div class="card-header border-bottom">
     <h6 class="card-title mb-0">Filters</h6>
   </div>
+  <div class="px-4 py-3">
+    <div id="filters-row" class="row g-3 align-items-end">
+      <div class="col-sm-6 col-md-4">
+        <select id="user-country-filter" class="form-select" data-allow-clear="true" data-placeholder="Filter by country">
+          <option value=""></option>
+        </select>
+      </div>
+    </div>
+  </div>
   <div class="card-datatable">
     <table class="datatables-users table">
       <thead>
@@ -127,6 +136,7 @@
           <th>Id</th>
           <th>User</th>
           <th>Email</th>
+          <th>Country</th>
           <th>Verified</th>
           <th>Actions</th>
         </tr>
