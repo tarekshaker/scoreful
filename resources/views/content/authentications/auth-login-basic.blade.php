@@ -5,7 +5,7 @@ $customizerHidden = 'customizer-hide';
 
 @extends('layouts/layoutMaster')
 
-@section('title', 'Login Basic - Pages')
+@section('title', 'Admin Login')
 
 @section('vendor-style')
 @vite(['resources/assets/vendor/libs/@form-validation/form-validation.scss'])
@@ -53,7 +53,7 @@ $customizerHidden = 'customizer-hide';
             @csrf
             <div class="form-floating form-floating-outline mb-5 form-control-validation">
               <input type="text" class="form-control" id="email" name="email"
-                placeholder="Enter your email or username" autofocus />
+                placeholder="Enter your email or username" value="{{ old('email') }}" autofocus />
               <label for="email">Email or Username</label>
             </div>
             <div class="mb-5">
@@ -72,10 +72,10 @@ $customizerHidden = 'customizer-hide';
             </div>
             <div class="mb-5 pb-2 d-flex justify-content-between pt-2 align-items-center">
               <div class="form-check mb-0">
-                <input class="form-check-input" type="checkbox" id="remember-me" />
+                <input class="form-check-input" type="checkbox" id="remember-me" name="remember" {{ old('remember') ? 'checked' : '' }} />
                 <label class="form-check-label" for="remember-me"> Remember Me </label>
               </div>
-              <a href="{{ url('auth/forgot-password-basic') }}" class="float-end mb-1">
+              <a href="{{ url('/admin/forget-password') }}" class="float-end mb-1">
                 <span>Forgot Password?</span>
               </a>
             </div>
@@ -84,34 +84,34 @@ $customizerHidden = 'customizer-hide';
             </div>
           </form>
 
-          <p class="text-center mb-5">
-            <span>New on our platform?</span>
-            <a href="{{ url('auth/register-basic') }}">
-              <span>Create an account</span>
-            </a>
-          </p>
+{{--          <p class="text-center mb-5">--}}
+{{--            <span>New on our platform?</span>--}}
+{{--            <a href="{{ url('auth/register-basic') }}">--}}
+{{--              <span>Create an account</span>--}}
+{{--            </a>--}}
+{{--          </p>--}}
 
-          <div class="divider my-5">
-            <div class="divider-text">or</div>
-          </div>
+{{--          <div class="divider my-5">--}}
+{{--            <div class="divider-text">or</div>--}}
+{{--          </div>--}}
 
-          <div class="d-flex justify-content-center gap-2">
-            <a href="javascript:;" class="btn btn-icon btn-lg rounded-pill btn-text-facebook">
-              <i class="icon-base ri ri-facebook-fill icon-24px"></i>
-            </a>
+{{--          <div class="d-flex justify-content-center gap-2">--}}
+{{--            <a href="javascript:;" class="btn btn-icon btn-lg rounded-pill btn-text-facebook">--}}
+{{--              <i class="icon-base ri ri-facebook-fill icon-24px"></i>--}}
+{{--            </a>--}}
 
-            <a href="javascript:;" class="btn btn-icon btn-lg rounded-pill btn-text-twitter">
-              <i class="icon-base ri ri-twitter-fill icon-24px"></i>
-            </a>
+{{--            <a href="javascript:;" class="btn btn-icon btn-lg rounded-pill btn-text-twitter">--}}
+{{--              <i class="icon-base ri ri-twitter-fill icon-24px"></i>--}}
+{{--            </a>--}}
 
-            <a href="javascript:;" class="btn btn-icon btn-lg rounded-pill btn-text-github">
-              <i class="icon-base ri ri-github-fill icon-24px"></i>
-            </a>
+{{--            <a href="javascript:;" class="btn btn-icon btn-lg rounded-pill btn-text-github">--}}
+{{--              <i class="icon-base ri ri-github-fill icon-24px"></i>--}}
+{{--            </a>--}}
 
-            <a href="javascript:;" class="btn btn-icon btn-lg rounded-pill btn-text-google-plus">
-              <i class="icon-base ri ri-google-fill icon-24px"></i>
-            </a>
-          </div>
+{{--            <a href="javascript:;" class="btn btn-icon btn-lg rounded-pill btn-text-google-plus">--}}
+{{--              <i class="icon-base ri ri-google-fill icon-24px"></i>--}}
+{{--            </a>--}}
+{{--          </div>--}}
         </div>
       </div>
       <!-- /Login -->

@@ -56,7 +56,7 @@
       {
         "name": "User Management",
         "icon": "ri-account-circle-line",
-        "url": "laravel/user-management"
+        "url": "admin/user-management"
       }
     ],
     "Apps": [

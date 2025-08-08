@@ -10,6 +10,9 @@ class LoginBasic extends Controller
 {
   public function index()
   {
+    if (Auth::check()) {
+      return redirect()->route('dashboard-analytics');
+    }
     $pageConfigs = ['myLayout' => 'blank'];
     return view('content.authentications.auth-login-basic', ['pageConfigs' => $pageConfigs]);
   }
@@ -18,7 +21,9 @@ class LoginBasic extends Controller
   {
     $credentials = $request->only('email', 'password');
 
-    if (Auth::attempt($credentials)) {
+    $remember = $request->boolean('remember');
+
+    if (Auth::attempt($credentials, $remember)) {
       $request->session()->regenerate();
       return redirect()->intended(route('dashboard-analytics'));
     }
@@ -34,7 +39,7 @@ class LoginBasic extends Controller
     $request->session()->invalidate();
     $request->session()->regenerateToken();
 
-    return redirect()->route('admin.login'); // or route('login-basic')
+    return redirect()->route('admin.login');
   }
 
 }

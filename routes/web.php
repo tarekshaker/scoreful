@@ -167,10 +167,17 @@ Route::get('/admin', function () {
 
 Route::get('/admin/login', [LoginBasic::class, 'index'])->name('admin.login');
 Route::post('/admin/login', [LoginBasic::class, 'login'])->name('login.submit');
+Route::get('/admin/forget-password', [ForgotPasswordBasic::class, 'index'])->name('admin.forget-password');
+Route::post('/admin/forget-password', [ForgotPasswordBasic::class, 'sendResetLink'])->name('admin.forget-password.send');
+Route::get('/admin/reset-password', [ResetPasswordBasic::class, 'index'])->name('admin.reset-password');
+Route::post('/admin/reset-password', [ResetPasswordBasic::class, 'reset'])->name('admin.reset-password.update');
 
 Route::post('/admin/logout', [LoginBasic::class, 'logout'])
   ->name('admin.logout')
   ->middleware('auth');
+
+Route::get('/admin/user-management', [UserManagement::class, 'UserManagement'])->name('user-management');
+
 
 
 // Main Page Route
@@ -268,9 +275,7 @@ Route::get('/auth/register-cover', [RegisterCover::class, 'index'])->name('auth-
 Route::get('/auth/register-multisteps', [RegisterMultiSteps::class, 'index'])->name('auth-register-multisteps');
 Route::get('/auth/verify-email-basic', [VerifyEmailBasic::class, 'index'])->name('auth-verify-email-basic');
 Route::get('/auth/verify-email-cover', [VerifyEmailCover::class, 'index'])->name('auth-verify-email-cover');
-Route::get('/auth/reset-password-basic', [ResetPasswordBasic::class, 'index'])->name('auth-reset-password-basic');
 Route::get('/auth/reset-password-cover', [ResetPasswordCover::class, 'index'])->name('auth-reset-password-cover');
-Route::get('/auth/forgot-password-basic', [ForgotPasswordBasic::class, 'index'])->name('auth-reset-password-basic');
 Route::get('/auth/forgot-password-cover', [ForgotPasswordCover::class, 'index'])->name('auth-forgot-password-cover');
 Route::get('/auth/two-steps-basic', [TwoStepsBasic::class, 'index'])->name('auth-two-steps-basic');
 Route::get('/auth/two-steps-cover', [TwoStepsCover::class, 'index'])->name('auth-two-steps-cover');
@@ -366,5 +371,4 @@ Route::get('/charts/chartjs', [ChartJs::class, 'index'])->name('charts-chartjs')
 Route::get('/maps/leaflet', [Leaflet::class, 'index'])->name('maps-leaflet');
 
 // laravel example
-Route::get('/laravel/user-management', [UserManagement::class, 'UserManagement'])->name('laravel-example-user-management');
 Route::resource('/user-list', UserManagement::class);

@@ -5,7 +5,7 @@ $customizerHidden = 'customizer-hide';
 
 @extends('layouts/layoutMaster')
 
-@section('title', 'Reset Password Basic - Pages')
+@section('title', 'Reset Password')
 
 @section('vendor-style')
 @vite(['resources/assets/vendor/libs/@form-validation/form-validation.scss'])
@@ -42,39 +42,57 @@ $customizerHidden = 'customizer-hide';
         <div class="card-body mt-1">
           <h4 class="mb-1">Reset Password 🔒</h4>
           <p class="mb-5">Your new password must be different from previously used passwords</p>
-          <form id="formAuthentication" class="mb-5" action="{{ url('auth/login-basic') }}" method="GET">
-            <div class="mb-5 form-password-toggle form-control-validation">
-              <div class="input-group input-group-merge">
-                <div class="form-floating form-floating-outline">
-                  <input type="password" id="password" class="form-control" name="password"
-                    placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
-                    aria-describedby="password" />
-                  <label for="password">New Password</label>
-                </div>
-                <span class="input-group-text cursor-pointer"><i
-                    class="icon-base ri ri-eye-off-line icon-20px"></i></span>
+
+          @if (session('password_reset_success'))
+            <div class="alert alert-success mb-4" role="alert">{{ session('password_reset_success') }}</div>
+            <a href="{{ url('admin/login') }}" class="btn btn-primary d-grid w-100">Go to login</a>
+          @else
+            @if ($errors->any())
+              <div class="alert alert-danger mb-4" role="alert">
+                <ul class="mb-0">
+                  @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                  @endforeach
+                </ul>
               </div>
-            </div>
-            <div class="mb-5 form-password-toggle form-control-validation">
-              <div class="input-group input-group-merge">
-                <div class="form-floating form-floating-outline">
-                  <input type="password" id="confirm-password" class="form-control" name="confirm-password"
-                    placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
-                    aria-describedby="password" />
-                  <label for="confirm-password">Confirm Password</label>
+            @endif
+
+            <form id="formAuthentication" class="mb-5" action="{{ url('admin/reset-password') }}" method="POST">
+              @csrf
+              <input type="hidden" name="token" value="{{ $token ?? request('token') }}">
+              <input type="hidden" name="email" value="{{ $email ?? request('email') }}">
+
+              <div class="mb-5 form-password-toggle form-control-validation">
+                <div class="input-group input-group-merge">
+                  <div class="form-floating form-floating-outline">
+                    <input type="password" id="password" class="form-control @error('password') is-invalid @enderror" name="password"
+                      placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
+                      aria-describedby="password" required />
+                    <label for="password">New Password</label>
+                  </div>
+                  <span class="input-group-text cursor-pointer"><i class="icon-base ri ri-eye-off-line icon-20px"></i></span>
                 </div>
-                <span class="input-group-text cursor-pointer"><i
-                    class="icon-base ri ri-eye-off-line icon-20px"></i></span>
               </div>
-            </div>
-            <button class="btn btn-primary d-grid w-100 mb-5">Set new password</button>
-            <div class="text-center">
-              <a href="{{ url('auth/login-basic') }}" class="d-flex align-items-center justify-content-center">
-                <i class="icon-base ri ri-arrow-left-s-line scaleX-n1-rtl icon-20px me-1_5"></i>
-                Back to login
-              </a>
-            </div>
-          </form>
+              <div class="mb-5 form-password-toggle form-control-validation">
+                <div class="input-group input-group-merge">
+                  <div class="form-floating form-floating-outline">
+                    <input type="password" id="confirm-password" class="form-control" name="password_confirmation"
+                      placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
+                      aria-describedby="password" required />
+                    <label for="confirm-password">Confirm Password</label>
+                  </div>
+                  <span class="input-group-text cursor-pointer"><i class="icon-base ri ri-eye-off-line icon-20px"></i></span>
+                </div>
+              </div>
+              <button class="btn btn-primary d-grid w-100 mb-5">Set new password</button>
+              <div class="text-center">
+                <a href="{{ url('admin/login') }}" class="d-flex align-items-center justify-content-center">
+                  <i class="icon-base ri ri-arrow-left-s-line scaleX-n1-rtl icon-20px me-1_5"></i>
+                  Back to login
+                </a>
+              </div>
+            </form>
+          @endif
         </div>
       </div>
       <!-- /Reset Password -->

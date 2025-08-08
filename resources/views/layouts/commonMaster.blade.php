@@ -65,8 +65,14 @@
   <meta name="csrf-token" content="{{ csrf_token() }}" />
   <!-- Canonical SEO -->
   <link rel="canonical" href="{{ config('variables.productPage') ? config('variables.productPage') : '' }}" />
-  <!-- Favicon -->
-  <link rel="icon" type="image/x-icon" href="{{ asset('assets/img/favicon/favicon.ico') }}" />
+  <!-- Favicon (SVG generated from Blade macro) -->
+  @php
+    // Generate favicon SVG with a fixed brand color
+    $svgFavicon = view('_partials.macros', ['width' => 32, 'height' => 32, 'wrap' => false, 'color' => '#509da2'])->render();
+    $svgFavicon = str_replace(["\n", "\r"], '', $svgFavicon);
+    $svgFaviconUri = 'data:image/svg+xml,' . rawurlencode($svgFavicon);
+  @endphp
+  <link rel="icon" type="image/svg+xml" href="{{ $svgFaviconUri }}" />
 
   <!-- Include Styles -->
   <!-- $isFront is used to append the front layout styles only on the front layout otherwise the variable will be blank -->

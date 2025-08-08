@@ -13,6 +13,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Seed reference data first
+        $this->call(CountriesSeeder::class);
+
+        // Then seed users (factories may optionally assign country_code)
         User::factory(10)->create();
 
         User::factory()->create([

@@ -372,9 +372,9 @@
           "slug": "laravel-example",
           "submenu": [
             {
-              "url": "laravel/user-management",
+              "url": "admin/user-management",
               "name": "User Management",
-              "slug": "laravel-example-user-management"
+              "slug": "user-management"
             }
           ]
         }

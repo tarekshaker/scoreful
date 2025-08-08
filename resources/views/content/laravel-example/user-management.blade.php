@@ -1,6 +1,6 @@
 @extends('layouts/layoutMaster')
 
-@section('title', 'User Management - Crud App')
+@section('title', 'Users')
 
 <!-- Vendor Styles -->
 @section('vendor-style')

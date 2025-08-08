@@ -7,6 +7,9 @@
 <!-- Fonts Icons -->
 @vite(['resources/assets/vendor/fonts/iconify/iconify.css'])
 
+<!-- Country flag icons (available globally) -->
+@vite(['resources/assets/vendor/fonts/flag-icons.scss'])
+
 <!-- BEGIN: Vendor CSS-->
 @vite(['resources/assets/vendor/libs/node-waves/node-waves.scss'])
 

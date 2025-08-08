@@ -92,6 +92,8 @@ document.addEventListener('DOMContentLoaded', function (e) {
           responsivePriority: 4,
           render: function (data, type, full, meta) {
             const { name } = full; // Destructuring to get 'name' from the 'full' object
+            const flagClass = full['country_flag_class'];
+            const countryName = full['country_name'];
 
             // For Avatar badge
             const stateNum = Math.floor(Math.random() * 6);
@@ -114,7 +116,8 @@ document.addEventListener('DOMContentLoaded', function (e) {
                   </div>
                 </div>
                 <div class="d-flex flex-column">
-                  <a href="${userView}" class="text-truncate text-heading">
+                  <a href="${userView}" class="text-truncate text-heading d-flex align-items-center gap-2">
+                    ${flagClass ? `<span class="fi ${flagClass} me-1" ${countryName ? `title="${countryName}"` : ''}></span>` : ''}
                     <span class="fw-medium">${name}</span>
                   </a>
                 </div>

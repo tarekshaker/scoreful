@@ -1,6 +1,12 @@
 {
   "menu": [
     {
+      "url": "admin/user-management",
+      "name": "User Management",
+      "icon": "menu-icon icon-base ri ri-user-3-line",
+      "slug": "user-management"
+    },
+    {
       "name": "Dashboards",
       "icon": "menu-icon icon-base ri ri-home-smile-line",
       "slug": "dashboard",
@@ -133,9 +139,9 @@
       "slug": "laravel-example",
       "submenu": [
         {
-          "url": "laravel/user-management",
+          "url": "admin/user-management",
           "name": "User Management",
-          "slug": "laravel-example-user-management"
+          "slug": "user-management"
         }
       ]
     },

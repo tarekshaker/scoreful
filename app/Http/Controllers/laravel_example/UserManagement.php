@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Country;
 use Illuminate\Support\Str;
 use Illuminate\Contracts\View\View;
 
@@ -57,6 +58,11 @@ class UserManagement extends Controller
 
       $query = User::query();
 
+      // Country filter
+      if ($request->filled('country_code')) {
+        $query->where('country_code', $request->input('country_code'));
+      }
+
       // Search handling
     if (!empty($request->input('search.value'))) {
       $search = $request->input('search.value');
@@ -70,7 +76,8 @@ class UserManagement extends Controller
       $totalFiltered = $query->count();
     }
 
-    $users = $query->offset($start)
+    $users = $query->with('country')
+      ->offset($start)
       ->limit($limit)
       ->orderBy($order, $dir)
       ->get();
@@ -85,6 +92,9 @@ class UserManagement extends Controller
         'name' => $user->name,
         'email' => $user->email,
         'email_verified_at' => $user->email_verified_at,
+        'country_code' => $user->country_code,
+        'country_name' => optional($user->country)->name,
+        'country_flag_class' => optional($user->country)->flag_icon_class,
       ];
     }
 

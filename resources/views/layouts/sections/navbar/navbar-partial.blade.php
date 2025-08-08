@@ -448,11 +448,15 @@ use Illuminate\Support\Facades\Route;
                 </div>
               </div>
               <div class="flex-grow-1">
-                <h6 class="mb-0 small">
+                <h6 class="mb-0 small d-flex align-items-center gap-2">
                   @if (Auth::check())
-                  {{ Auth::user()->name }}
+                  @php($user = Auth::user())
+                  @if(optional($user->country)->iso2)
+                    <span class="fi fi-{{ strtolower(optional($user->country)->iso2) }}"></span>
+                  @endif
+                  <span>{{ $user->name }}</span>
                   @else
-                  John Doe
+                  <span>John Doe</span>
                   @endif
                 </h6>
                 <small class="text-body-secondary">Admin</small>
