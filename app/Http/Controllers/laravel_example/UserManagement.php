@@ -70,6 +70,7 @@ class UserManagement extends Controller
       $query->where(function ($q) use ($search) {
         $q->where('id', 'LIKE', "%{$search}%")
           ->orWhere('name', 'LIKE', "%{$search}%")
+          ->orWhere('username', 'LIKE', "%{$search}%")
           ->orWhere('email', 'LIKE', "%{$search}%");
       });
 
@@ -90,6 +91,7 @@ class UserManagement extends Controller
         'id' => $user->id,
         'fake_id' => ++$ids,
         'name' => $user->name,
+        'username' => $user->username,
         'email' => $user->email,
         'email_verified_at' => $user->email_verified_at,
         'country_code' => $user->country_code,
@@ -131,7 +133,13 @@ class UserManagement extends Controller
       // update the value
       $users = User::updateOrCreate(
         ['id' => $userID],
-        ['name' => $request->name, 'email' => $request->email]
+        [
+          'name' => $request->name,
+          'email' => $request->email,
+          'username' => $request->username,
+          'country_code' => $request->country_code,
+          'gender' => $request->gender,
+        ]
       );
 
       // user updated
@@ -143,7 +151,14 @@ class UserManagement extends Controller
       if (empty($userEmail)) {
         $users = User::updateOrCreate(
           ['id' => $userID],
-          ['name' => $request->name, 'email' => $request->email, 'password' => bcrypt(Str::random(10))]
+          [
+            'name' => $request->name,
+            'email' => $request->email,
+            'username' => $request->username,
+            'country_code' => $request->country_code,
+            'gender' => $request->gender,
+            'password' => bcrypt(Str::random(10))
+          ]
         );
 
         // user created
@@ -205,13 +220,7 @@ class UserManagement extends Controller
   {
     $q = trim((string) $request->input('q', ''));
 
-    $countryCodes = User::query()
-      ->whereNotNull('country_code')
-      ->distinct()
-      ->pluck('country_code');
-
     $countries = Country::query()
-      ->whereIn('iso2', $countryCodes)
       ->when($q !== '', function ($query) use ($q) {
         $query->where(function ($sub) use ($q) {
           $sub->where('name', 'like', "%{$q}%")

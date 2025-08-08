@@ -17,21 +17,55 @@ document.addEventListener('DOMContentLoaded', function (e) {
     userView = baseUrl + 'app/user/view/account',
     offCanvasForm = document.getElementById('offcanvasAddUser');
 
-  // Select2 initialization for offcanvas form country
+  // Select2 (generic, if any .select2 present)
   var select2 = $('.select2');
   if (select2.length) {
     var $this = select2;
     select2Focus($this);
-    $this.wrap('<div class="position-relative"></div>').select2({
-      placeholder: 'Select Country',
+    $this.select2({
       dropdownParent: $this.parent()
     });
   }
 
-  // Country filter (Select2 with AJAX) - only countries used by users
+  // Add User form country select (Select2 with AJAX) - all countries with search & flags
+  const $addUserCountry = $('#add-user-country');
+  if ($addUserCountry.length) {
+    $addUserCountry.select2({
+      placeholder: 'Select a country',
+      allowClear: true,
+      ajax: {
+        url: baseUrl + 'user-list/countries',
+        dataType: 'json',
+        delay: 250,
+        data: function (params) {
+          return { q: params.term || '' };
+        },
+        processResults: function (data) {
+          return {
+            results: data.map(function (item) {
+              return { id: item.id, text: item.text, flag_class: item.flag_class };
+            })
+          };
+        },
+        cache: true
+      },
+      dropdownParent: $addUserCountry.parent(),
+      templateResult: function (item) {
+        if (!item.id) return item.text;
+        var iconHtml = item.flag_class ? '<i class="fi ' + item.flag_class + ' fis rounded-circle me-2"></i>' : '';
+        var $tpl = $('<span>' + iconHtml + item.text + '</span>');
+        return $tpl;
+      },
+      templateSelection: function (item) {
+        return item.text || item.id || '';
+      }
+    });
+  }
+
+  // Country filter (Select2 with AJAX)
   const $countryFilter = $('#user-country-filter');
   if ($countryFilter.length) {
-    $countryFilter.wrap('<div class="position-relative"></div>').select2({
+    $countryFilter.select2({
       placeholder: 'Filter by country',
       allowClear: true,
       ajax: {
@@ -60,6 +94,32 @@ document.addEventListener('DOMContentLoaded', function (e) {
       templateSelection: function (item) {
         return item.text || item.id || '';
       }
+    });
+  }
+
+  // Gender select (Select2 with icons, no search)
+  const $addUserGender = $('#add-user-gender');
+  if ($addUserGender.length) {
+    function genderTemplate(item) {
+      if (!item.id) return item.text;
+      var val = (item.id || '').toString().toLowerCase();
+      var iconClass = $(item.element).data('icon');
+      if (!iconClass) {
+        if (val === 'male') iconClass = 'ri ri-men-line';
+        else if (val === 'female') iconClass = 'ri ri-women-line';
+        else iconClass = 'ri ri-genderless-line';
+      }
+      return $('<span><i class="' + iconClass + ' me-2"></i>' + (item.text || item.id) + '</span>');
+    }
+    select2Focus($addUserGender);
+    $addUserGender.select2({
+      placeholder: 'Select gender',
+      allowClear: true,
+      minimumResultsForSearch: -1,
+      dropdownParent: $addUserGender.parent(),
+      templateResult: genderTemplate,
+      templateSelection: function (item) { return genderTemplate(item); },
+      escapeMarkup: function (m) { return m; }
     });
   }
 
@@ -155,7 +215,8 @@ document.addEventListener('DOMContentLoaded', function (e) {
                 </div>
                 <div class="d-flex flex-column">
                   <a href="${userView}" class="text-truncate text-heading">
-                    <span class="fw-medium">${name}</span>
+                    <span class="fw-medium">${name}</span></a>
+                    <small>@${full['username']}</small>
                 </div>
               </div>
             `;
@@ -237,7 +298,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
           features: [
             {
               search: {
-                placeholder: 'Search by name or email',
+                placeholder: 'Search by name or username or email',
                 text: '_INPUT_'
               }
             },
@@ -662,8 +723,35 @@ document.addEventListener('DOMContentLoaded', function (e) {
           .then(response => response.json())
           .then(data => {
             document.getElementById('user_id').value = data.id;
-            document.getElementById('add-user-fullname').value = data.name;
-            document.getElementById('add-user-email').value = data.email;
+            document.getElementById('add-user-fullname').value = data.name || '';
+            document.getElementById('add-user-email').value = data.email || '';
+            const usernameEl = document.getElementById('add-user-username');
+            if (usernameEl) usernameEl.value = data.username || '';
+            // Preselect country in Select2 if available
+            if (data.country_code && $('#add-user-country').length) {
+              const option = new Option(data.country_code, data.country_code, true, true);
+              $('#add-user-country').append(option).trigger('change');
+            } else if ($('#add-user-country').length) {
+              $('#add-user-country').val(null).trigger('change');
+            }
+            if (data.gender && $('#add-user-gender').length) {
+              const option = new Option(data.gender, data.gender, true, true);
+              $('#add-user-gender').append(option).trigger('change');
+            } else if ($('#add-user-gender').length) {
+              $('#add-user-gender').val(null).trigger('change');
+            }
+            // // Preselect gender if provided (gender is a select control)
+            // const genderEl = document.getElementById('add-user-gender');
+            // if (genderEl) {
+            //   if (data.gender) {
+            //     const g = String(data.gender).toLowerCase();
+            //     if (g === 'male' || g === 'female') {
+            //       genderEl.value = g;
+            //     }
+            //   } else {
+            //     genderEl.value = '';
+            //   }
+            // }
           });
       }
     });
@@ -674,6 +762,28 @@ document.addEventListener('DOMContentLoaded', function (e) {
       addNewBtn.addEventListener('click', function () {
         document.getElementById('user_id').value = ''; //resetting input field
         document.getElementById('offcanvasAddUserLabel').innerHTML = 'Add User';
+        // Clear fields explicitly to avoid residual state if offcanvas is already open
+        const nameEl = document.getElementById('add-user-fullname');
+        if (nameEl) nameEl.value = '';
+        const emailEl = document.getElementById('add-user-email');
+        if (emailEl) emailEl.value = '';
+        const usernameEl = document.getElementById('add-user-username');
+        if (usernameEl) usernameEl.value = '';
+        // Clear country select2
+        if (window.jQuery && $('#add-user-country').length) {
+          window.__isResettingSelects = true;
+          $('#add-user-country').val(null).trigger('change.select2');
+          setTimeout(function(){ window.__isResettingSelects = false; }, 0);
+        }
+        // Clear gender select2
+        if (window.jQuery && $('#add-user-gender').length) {
+          window.__isResettingSelects = true;
+          $('#add-user-gender').val(null).trigger('change.select2');
+          setTimeout(function(){ window.__isResettingSelects = false; }, 0);
+        }
+        // // Clear gender select
+        // const genderEl = document.getElementById('add-user-gender');
+        // if (genderEl) genderEl.value = '';
       });
     }
 
@@ -713,6 +823,33 @@ document.addEventListener('DOMContentLoaded', function (e) {
           }
         });
       });
+
+      // Autosize the DataTables search input to fit its placeholder/text without affecting vertical padding/height
+      const searchInput = document.querySelector('.dt-search input[type="search"]');
+      if (searchInput) {
+        // Capture initial vertical metrics to prevent unintended changes
+        const cs = getComputedStyle(searchInput);
+        const initialHeight = cs.height;
+        const initialPaddingTop = cs.paddingTop;
+        const initialPaddingBottom = cs.paddingBottom;
+
+        const fitSearchWidth = () => {
+          const placeholder = searchInput.getAttribute('placeholder') || '';
+          const value = searchInput.value || '';
+          const minChars = 12;
+          const chs = Math.max(placeholder.length, value.length, minChars) + 1; // a little padding
+          // Keep Bootstrap default box-sizing (border-box) and only adjust width
+          searchInput.style.width = chs + 'ch';
+          searchInput.style.flex = '0 0 auto';
+          // Ensure vertical metrics stay the same
+          searchInput.style.height = initialHeight;
+          searchInput.style.paddingTop = initialPaddingTop;
+          searchInput.style.paddingBottom = initialPaddingBottom;
+        };
+        // Initial fit and on input
+        fitSearchWidth();
+        searchInput.addEventListener('input', fitSearchWidth);
+      }
     }, 100);
   }
 
@@ -726,31 +863,38 @@ document.addEventListener('DOMContentLoaded', function (e) {
         name: {
           validators: {
             notEmpty: {
-              message: 'Please enter fullname'
+              message: 'Please enter full name'
             }
           }
         },
         email: {
           validators: {
             notEmpty: {
-              message: 'Please enter your email'
+              message: 'Please enter email'
             },
             emailAddress: {
               message: 'The value is not a valid email address'
             }
           }
         },
-        userContact: {
+        username: {
           validators: {
             notEmpty: {
-              message: 'Please enter your contact'
+              message: 'Please enter a username'
             }
           }
         },
-        company: {
+        country_code: {
           validators: {
             notEmpty: {
-              message: 'Please enter your company'
+              message: 'Please select a country'
+            }
+          }
+        },
+        gender: {
+          validators: {
+            notEmpty: {
+              message: 'Please select gender'
             }
           }
         }
@@ -768,7 +912,63 @@ document.addEventListener('DOMContentLoaded', function (e) {
         submitButton: new FormValidation.plugins.SubmitButton(),
         autoFocus: new FormValidation.plugins.AutoFocus()
       }
-    }).on('core.form.valid', function () {
+    });
+
+    // Revalidate Select2 fields on change/clear so invalid state is removed immediately
+    // Use a guard to avoid revalidating during programmatic resets
+    // Use a shared window flag so other handlers (like Add New button) can coordinate
+    if (typeof window.__isResettingSelects === 'undefined') {
+      window.__isResettingSelects = false;
+    }
+
+    var $countrySel = $('#add-user-country');
+    if ($countrySel.length) {
+      $countrySel.on('change.select2', function () {
+        if (window.__isResettingSelects) return;
+        fv.revalidateField('country_code');
+      }).on('select2:clear', function () {
+        if (window.__isResettingSelects) return;
+        fv.revalidateField('country_code');
+      });
+    }
+    var $genderSel = $('#add-user-gender');
+    if ($genderSel.length) {
+      $genderSel.on('change.select2', function () {
+        if (window.__isResettingSelects) return;
+        fv.revalidateField('gender');
+      }).on('select2:clear', function () {
+        if (window.__isResettingSelects) return;
+        fv.revalidateField('gender');
+      });
+    }
+
+    // Ensure default open state is clean (no errors shown). Reset on offcanvas open
+    var offcanvasEl = document.getElementById('offcanvasAddUser');
+    if (offcanvasEl) {
+      offcanvasEl.addEventListener('show.bs.offcanvas', function () {
+        try {
+          if (fv) {
+            fv.resetForm(true); // clears messages and classes; also resets values
+          }
+        } catch (err) {
+          // ignore
+        }
+        // Make sure Select2 placeholders are shown
+        if (window.jQuery) {
+          window.__isResettingSelects = true;
+          if ($('#add-user-country').length) {
+            $('#add-user-country').val(null).trigger('change.select2');
+          }
+          if ($('#add-user-gender').length) {
+            $('#add-user-gender').val(null).trigger('change.select2');
+          }
+          // Unset guard on next tick to avoid catching any cascading events
+          setTimeout(function(){ window.__isResettingSelects = false; }, 0);
+        }
+      });
+    }
+
+    fv.on('core.form.valid', function () {
       // adding or updating user when form successfully validate
       const formData = new FormData(addNewUserForm);
       const formDataObj = {};
@@ -822,7 +1022,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
 
           Swal.fire({
             title: 'Duplicate Entry!',
-            text: 'Your email should be unique.',
+            text: 'the email should be unique.',
             icon: 'error',
             customClass: {
               confirmButton: 'btn btn-success'
