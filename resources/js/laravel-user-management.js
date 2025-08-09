@@ -727,18 +727,33 @@ document.addEventListener('DOMContentLoaded', function (e) {
             document.getElementById('add-user-email').value = data.email || '';
             const usernameEl = document.getElementById('add-user-username');
             if (usernameEl) usernameEl.value = data.username || '';
-            // Preselect country in Select2 if available
-            if (data.country_code && $('#add-user-country').length) {
-              const option = new Option(data.country_code, data.country_code, true, true);
-              $('#add-user-country').append(option).trigger('change');
-            } else if ($('#add-user-country').length) {
-              $('#add-user-country').val(null).trigger('change');
+            // Preselect country in Select2 if available with proper text and flag
+            if ($('#add-user-country').length) {
+              const $country = $('#add-user-country');
+              if (data.country && data.country.id) {
+                // Clear previous single injected option to avoid duplicates
+                $country.find('option:not([value=""])').remove();
+                const opt = new Option(data.country.text, data.country.id, true, true);
+                $country.append(opt).trigger('change.select2');
+              } else if (data.country_code) {
+                // Fallback: show code if we did not receive country meta
+                $country.find('option:not([value=""])').remove();
+                const opt = new Option(data.country_code, data.country_code, true, true);
+                $country.append(opt).trigger('change.select2');
+              } else {
+                $country.val(null).trigger('change.select2');
+              }
             }
-            if (data.gender && $('#add-user-gender').length) {
-              const option = new Option(data.gender, data.gender, true, true);
-              $('#add-user-gender').append(option).trigger('change');
-            } else if ($('#add-user-gender').length) {
-              $('#add-user-gender').val(null).trigger('change');
+
+            // Preselect gender by value (options already exist with proper case labels)
+            if ($('#add-user-gender').length) {
+              const $gender = $('#add-user-gender');
+              if (data.gender) {
+                const gVal = String(data.gender).toLowerCase();
+                $gender.val(gVal).trigger('change.select2');
+              } else {
+                $gender.val(null).trigger('change.select2');
+              }
             }
             // // Preselect gender if provided (gender is a select control)
             // const genderEl = document.getElementById('add-user-gender');
@@ -772,6 +787,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
         // Clear country select2
         if (window.jQuery && $('#add-user-country').length) {
           window.__isResettingSelects = true;
+          $('#add-user-country').find('option:not([value=""])').remove();
           $('#add-user-country').val(null).trigger('change.select2');
           setTimeout(function(){ window.__isResettingSelects = false; }, 0);
         }
@@ -957,6 +973,8 @@ document.addEventListener('DOMContentLoaded', function (e) {
         if (window.jQuery) {
           window.__isResettingSelects = true;
           if ($('#add-user-country').length) {
+            // remove any previously injected selected option to avoid duplicates across opens
+            $('#add-user-country').find('option:not([value=""])').remove();
             $('#add-user-country').val(null).trigger('change.select2');
           }
           if ($('#add-user-gender').length) {

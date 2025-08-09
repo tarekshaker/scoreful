@@ -190,7 +190,25 @@ class UserManagement extends Controller
   public function edit($id): JsonResponse
   {
     $user = User::findOrFail($id);
-    return response()->json($user);
+
+    // Attach country meta so the front-end Select2 can show proper country name and flag
+    $countryData = null;
+    if ($user->country_code) {
+      $country = Country::find($user->country_code);
+      if ($country) {
+        $countryData = [
+          'id' => $country->iso2,
+          'text' => $country->name,
+          'flag_class' => $country->flag_icon_class,
+        ];
+      }
+    }
+
+    $payload = array_merge($user->toArray(), [
+      'country' => $countryData,
+    ]);
+
+    return response()->json($payload);
   }
 
   /**
